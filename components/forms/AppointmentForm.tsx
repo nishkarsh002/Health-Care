@@ -210,7 +210,7 @@ export const AppointmentForm = ({
 
         <SubmitButton
           isLoading={isLoading}
-          className={`${type === "cancel" ? "shad-danger-btn" : "shad-primary-btn"} w-full`} onclick={()=> console.log("clicked")}
+          className={`${type === "cancel" ? "shad-danger-btn" : "shad-primary-btn"} w-full`} 
         >
           
           {buttonLabel}
