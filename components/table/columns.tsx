@@ -2,9 +2,11 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
+
 import { Doctors } from "@/constants";
 import { formatDateTime } from "@/lib/utils";
 import { Appointment } from "@/types/appwrite.types";
+
 import { AppointmentModal } from "../AppointmentModal";
 import  StatusBadge  from "../StatusBadge";
 
@@ -20,19 +22,22 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Patient",
     cell: ({ row }) => {
       const appointment = row.original;
-      return <p className="text-14-medium ">{appointment.patient.name}</p>;
+      const patientName = appointment.patient?.name ?? "Unknown Patient";
+      return
+      {patientName}
     },
   },
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => 
-     (
+    cell: ({ row }) => {
+      const appointment = row.original;
+      return (
         <div className="min-w-[115px]">
-          <StatusBadge status={row.original.status} />
+          <StatusBadge status={appointment.status} />
         </div>
-     )
-    
+      );
+    },
   },
   {
     accessorKey: "schedule",
@@ -73,24 +78,34 @@ export const columns: ColumnDef<Appointment>[] = [
   {
     id: "actions",
     header: () => <div className="pl-4">Actions</div>,
-    cell: ({ row : {original: data} }) => {
-      // const appointment = row.original;
+    cell: ({ row }) => {
+      const appointment = row.original;
 
       return (
         <div className="flex gap-1">
-          <AppointmentModal
-            patientId={data.patient.$id}
-            userId={data.userId}
-            appointment={data}
-            type="schedule" 
+          { appointment.patient ?(
+            <>
+            <AppointmentModal
+            patientId={appointment.patient.$id}
+            userId={appointment.userId}
+            appointment={appointment}
+            type="schedule"
+            title="Schedule Appointment"
+            description="Please confirm the following details to schedule."
           />
-          {/* // here I'm having the problem */}
           <AppointmentModal
-            patientId={data.patient.$id}
-            userId={data.userId}
-            appointment={data}
+            patientId={appointment.patient.$id}
+            userId={appointment.userId}
+            appointment={appointment}
             type="cancel"
+            title="Cancel Appointment"
+            description="Are you sure you want to cancel your appointment?"
           />
+            </>
+          ) : (
+            <p className="text-15-medium">No patient</p>
+          )}
+          
         </div>
       );
     },
