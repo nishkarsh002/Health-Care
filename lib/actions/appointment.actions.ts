@@ -68,11 +68,7 @@ patient: null,
       cancelledCount: 0,
     };
 
-   const initialCounts = {
-  scheduledCount: 0,
-  pendingCount: 0,
-  cancelledCount: 0,
-};
+   
 
 const counts = appointmentsWithPatients.reduce((acc, appointment) => {
   const status = (appointment as { status?: string }).status;
