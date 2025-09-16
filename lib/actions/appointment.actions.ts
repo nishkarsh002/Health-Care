@@ -41,25 +41,26 @@ export const getRecentAppointmentList = async () => {
       [Query.orderDesc("$createdAt")]
     );
 
-    // const scheduledAppointments = (
-    //   appointments.documents as Appointment[]
-    // ).filter((appointment) => appointment.status === "scheduled");
-
-    // const pendingAppointments = (
-    //   appointments.documents as Appointment[]
-    // ).filter((appointment) => appointment.status === "pending");
-
-    // const cancelledAppointments = (
-    //   appointments.documents as Appointment[]
-    // ).filter((appointment) => appointment.status === "cancelled");
-
-    // const data = {
-    //   totalCount: appointments.total,
-    //   scheduledCount: scheduledAppointments.length,
-    //   pendingCount: pendingAppointments.length,
-    //   cancelledCount: cancelledAppointments.length,
-    //   documents: appointments.documents,
-    // };
+   const appointmentsWithPatients = await Promise.all(
+appointments.documents.map(async (appointment) => {
+try {
+const patient = await databases.getDocument(
+DATABASE_ID!,
+PATIENT_COLLECTION_ID!,
+appointment.patient
+);
+return {
+...appointment,
+patient: patient,
+};
+} catch (error) {
+return {
+...appointment,
+patient: null,
+};
+}
+})
+);
 
     const initialCounts = {
       scheduledCount: 0,
@@ -67,39 +68,42 @@ export const getRecentAppointmentList = async () => {
       cancelledCount: 0,
     };
 
-    const counts = (appointments.documents as Appointment[]).reduce(
-      (acc, appointment) => {
-        switch (appointment.status) {
-          case "scheduled":
-            acc.scheduledCount++;
-            break;
-          case "pending":
-            acc.pendingCount++;
-            break;
-          case "cancelled":
-            acc.cancelledCount++;
-            break;
-        }
-        return acc;
-      },
-      initialCounts
-    );
-
-    const data = {
-      totalCount: appointments.total,
-      ...counts,
-      documents: appointments.documents,
-    };
-
-    return parseStringify(data);
-  } catch (error) {
-    console.error(
-      "An error occurred while retrieving the recent appointments:",
-      error
-    );
-  }
+   const initialCounts = {
+  scheduledCount: 0,
+  pendingCount: 0,
+  cancelledCount: 0,
 };
 
+const counts = appointmentsWithPatients.reduce((acc, appointment) => {
+  const status = (appointment as { status?: string }).status;
+  switch (status) {
+    case "scheduled":
+      acc.scheduledCount++;
+      break;
+    case "pending":
+      acc.pendingCount++;
+      break;
+    case "cancelled":
+      acc.cancelledCount++;
+      break;
+  }
+  return acc;
+}, initialCounts);
+
+const data = {
+  totalCount: appointments.total,
+  ...counts,
+  documents: appointmentsWithPatients,
+};
+
+return parseStringify(data);
+} catch (error) {
+console.error(
+"An error occurred while retrieving the recent appointments:",
+error
+);
+}
+};
 //  SEND SMS NOTIFICATION
 export const sendSMSNotification = async (userId: string, content: string) => {
   try {
