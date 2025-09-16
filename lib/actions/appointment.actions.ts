@@ -34,14 +34,14 @@ export const createAppointment = async (
 
 //  GET RECENT APPOINTMENTS
 export const getRecentAppointmentList = async () => {
-  try {
-    const appointments = await databases.listDocuments(
-      DATABASE_ID!,
-      APPOINTMENT_COLLECTION_ID!,
-      [Query.orderDesc("$createdAt")]
-    );
-
-   const appointmentsWithPatients = await Promise.all(
+try {
+const appointments = await databases.listDocuments(
+DATABASE_ID!,
+APPOINTMENT_COLLECTION_ID!,
+[Query.orderDesc("$createdAt")]
+);
+// For each appointment, fetch the related patient data
+const appointmentsWithPatients = await Promise.all(
 appointments.documents.map(async (appointment) => {
 try {
 const patient = await databases.getDocument(
@@ -62,13 +62,11 @@ patient: null,
 })
 );
 
-    const initialCounts = {
-      scheduledCount: 0,
-      pendingCount: 0,
-      cancelledCount: 0,
-    };
-
-   
+const initialCounts = {
+  scheduledCount: 0,
+  pendingCount: 0,
+  cancelledCount: 0,
+};
 
 const counts = appointmentsWithPatients.reduce((acc, appointment) => {
   const status = (appointment as { status?: string }).status;
@@ -100,6 +98,8 @@ error
 );
 }
 };
+
+
 //  SEND SMS NOTIFICATION
 export const sendSMSNotification = async (userId: string, content: string) => {
   try {
